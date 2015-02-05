@@ -1,25 +1,74 @@
+var Game = {
+	_display: null,
+	_currentScreen: null,
+	_screenWidth: 80,
+	_screenHeight: 24,
+
+	init: function() {
+			//any initialization will happen here
+		this._display = new ROT.Display({ width: this._screenWidth, height: this._screenHeight + 1 });
+		//create a helper for binding to an event and making it send to the screen
+		var game = this;
+		var bindEventToScreen = function(event) {
+			window.addEventListener(event, function(e) {
+				//event is received, send to screen
+				if (game._currentScreen !== null){
+					game._currentScreen.handleInput(event, e);
+					}
+			});
+		};
+		bindEventToScreen('keydown');
+		bindEventToScreen('keyup');
+		bindEventToScreen('keypress');
+	},
+
+	getDisplay: function() {
+		return this._display;
+	},
+
+	getScreenWidth: function() {
+		return this._screenWidth;
+	},
+
+	getScreenHeight: function() {
+		return this._screenHeight;
+	},
+
+	refresh: function() {
+		//clear the screen
+		this._display.clear();
+		//render the screen
+		this._currentScreen.render(this._display);
+	},
+
+	switchScreen: function(screen) {
+		//if screen exists, notify that we exited
+		if (this._currentScreen !== null) {
+			this._currentScreen.exit();
+		}
+		//clear display
+		this.getDisplay().clear();
+		//update current screen, notice if we enter, render it.
+		this._currentScreen = screen;
+		if(!this._currentScreen !== null) {
+			this._currentScreen.enter();
+			this.refresh();
+		}
+	}
+};
+
+	
+
 window.onload = function(){
 // Check if rot.js can work on this browser
 	if (!ROT.isSupported()) {
 	    alert("The rot.js library isn't supported by your browser.");
 	} else {
-    //create the display
-		var display = new ROT.Display({width:80, height:20});
-		var container = display.getContainer();
-		//add the container to the body
-		document.body.appendChild(container);
-
-		var foreground, background, colors;
-		for (var i = 0; i < 15; i++){
-			//create backgorund color range
-		foreground = ROT.Color.toRGB([255 - (i * 20),
-												  			  255 - (i * 20 ),
-												  			  255 - (i * 20 )]);
-		background = ROT.Color.toRGB([ i * 20, i * 20, 9 * 20]);
-		//creates color format specifier
-		colors = '%c{' + foreground + '}%b{' + background + '}';
-		// draw the text at col 2 and row i
-		display.drawText(2, i, colors + "Hello World!");
-		}
+    //initialize game
+    Game.init();
+    //add container to page
+		document.body.appendChild(Game.getDisplay().getContainer());
+		//load start screen
+		Game.switchScreen(Game.Screen.startScreen);
 	}
 }
