@@ -6,20 +6,26 @@ var Game = {
 
 	init: function() {
 			//any initialization will happen here
-		this._display = new ROT.Display({ width: this._screenWidth, height: this._screenHeight + 1 });
+		this._display = new ROT.Display({ width: this._screenWidth, 
+			height: this._screenHeight + 1 });
 		//create a helper for binding to an event and making it send to the screen
 		var game = this;
 		var bindEventToScreen = function(event) {
 			window.addEventListener(event, function(e) {
 				//event is received, send to screen
 				if (game._currentScreen !== null){
+					//send event type and data to screen
 					game._currentScreen.handleInput(event, e);
+					//clear the screen
+					game._display.clear();
+					//render the screen
+					game._currentScreen.render(game._display);
 					}
 			});
 		};
 		bindEventToScreen('keydown');
-		bindEventToScreen('keyup');
-		bindEventToScreen('keypress');
+		// bindEventToScreen('keyup');
+		// bindEventToScreen('keypress');
 	},
 
 	getDisplay: function() {
