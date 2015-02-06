@@ -16,11 +16,7 @@ var Game = {
 				if (game._currentScreen !== null){
 					//send event type and data to screen
 					game._currentScreen.handleInput(event, e);
-					//clear the screen
-					game._display.clear();
-					//render the screen
-					game._currentScreen.render(game._display);
-					}
+				}
 			});
 		};
 		bindEventToScreen('keydown');
@@ -61,7 +57,7 @@ var Game = {
 			this.refresh();
 		}
 	}
-};
+}
 
 	
 

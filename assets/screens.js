@@ -9,11 +9,9 @@ Game.Screen.startScreen = {
 	},
 	handleInput: function(inputType, inputData) {
 		if (inputType === 'keydown') {
-			console.log(ROT.VK_RETURN);
-			console.log(inputData);
-			// debugger;
+			//if enter is pressed go to playScreen
 			if (inputData.keyCode === ROT.VK_RETURN) {
-				console.log("hi");
+				
 				Game.switchScreen(Game.Screen.playScreen);
 			}
 		}
@@ -56,13 +54,17 @@ Game.Screen.playScreen = {
 			} else {
 				map[x][y] = Game.Tile.wallTile;
 			}
-	});
-	this._map = new Game.Map(map);	
-	//create player and set position
-	this._player = new Game.Entity(Game.PlayerTemplate);
-	var position = this._map.getRandomFloorPosition();
-	this._player.setX(position.x);
-	this._player.setY(position.y);
+		});
+		//create player and set position
+		this._player = new Game.Entity(Game.PlayerTemplate);
+		//create map from tiles and player
+		this._map = new Game.Map(map, this._player);
+		//start map engine
+		this._map.getEngine().start();
+		// var position = this._map.getRandomFloorPosition();
+		// this._player.setX(position.x);
+		// this._player.setY(position.y);
+		
 	},
 	exit: function() { console.log("Exited play screen");	
 	},
@@ -78,7 +80,7 @@ Game.Screen.playScreen = {
 		//iterate through visible map cells
 		for (var x = topLeftX; x < topLeftX + screenWidth; x++) {
 			for (var y = topLeftY; y < topLeftY + screenHeight; y++) {
-				//fetch flyph for tile and render to screen
+				//fetch glyph for tile and render to screen
 				var tile = this._map.getTile(x, y);
 				display.draw(
 					x - topLeftX, 
@@ -88,14 +90,25 @@ Game.Screen.playScreen = {
 					tile.getBackground())
 			}
 		}
-		//render cursor
-		display.draw(
-			this._player.getX() - topLeftX,
-			this._player.getY() - topLeftY,
-			this._player.getChar(),
-			this._player.getForeground(),
-			this._player.getBackground()
-		);
+		//render entities
+		var entities = this._map.getEntities();
+		console.log(entities);
+		for (var i = 0; i < entities.length; i++) {
+			var entity = entities[i];
+
+			//only render entity if they show in screen
+			if (entity.getX() >= topLeftX && entity.getY() >= topLeftY &&
+					entity.getX() < topLeftX + screenWidth &&
+					entity.getY() < topLeftY + screenHeight) {
+					display.draw(
+						entity.getX() - topLeftX,
+						entity.getY() - topLeftY,
+						entity.getChar(),
+						entity.getForeground(),
+						entity.getBackground()
+					);
+			}
+		}
 	},
 
 	handleInput: function(inputType, inputData) {
@@ -115,6 +128,8 @@ Game.Screen.playScreen = {
 			} else if (inputData.keyCode === ROT.VK_DOWN) {
 				this.move(0, 1);
 			}
+			//unlock engine on move
+			this._map.getEngine().unlock();
 		}
 	},
 	move: function( dX, dY) {
