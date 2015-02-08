@@ -9,7 +9,14 @@ Game.Mixins.Moveable = {
 		var target = map.getEntityAt(x, y);
 		//if entry present, player can't move there
 		if (target) {
-			return false;
+			// if we are attacker, attack target
+			if (this.hasMixin('Attacker')) {
+				this.attack(target);
+				return true;
+			} else {
+				//if we still can't move to space
+				return false;
+			}
 		} else if (tile.isWalkable()) {
 			this._x = x;
 			this._y = y;
@@ -23,6 +30,32 @@ Game.Mixins.Moveable = {
 	}
 }
 
+Game.Mixins.Destructable = {
+	name: 'Destructable',
+	init: function() {
+		this._hp = 1;
+	},
+	takeDamage: function(attacker, damage) {
+		this._hp -= damage;
+		//if 0 or less, remove
+		if (this._hp <= 0) {
+			this.getMap().removeEntity(this);
+		}
+	}
+}
+
+Game.Mixins.SimpleAttacker = {
+	name: 'SimpleAttacker',
+	groupName: 'Attacker',
+	attack: function(target) {
+		//remove entity if attackable
+		if (target.hasMixin('Destructable')) {
+			target.takeDamage(this, 1);
+		}
+	}
+}
+
+
 ////////FUNGUS////////////////
 Game.Mixins.FungusActor = {
 	name: 'FungusActor',
@@ -33,7 +66,7 @@ Game.Mixins.FungusActor = {
 Game.FungusTemplate = {
 	character: "F",
 	foreground: 'green',
-	mixins: [Game.Mixins.FungusActor]
+	mixins: [Game.Mixins.FungusActor, Game.Mixins.Destructable]
 }
 
 // ////////WOLF////////////////
@@ -63,9 +96,10 @@ Game.Mixins.PlayerActor = {
 
 Game.PlayerTemplate = {
 	character: "$",
-	foreground: 'white',
+	foreground: 'yellow',
 	background: 'black',
-	mixins: [Game.Mixins.Moveable, Game.Mixins.PlayerActor]
+	mixins: [Game.Mixins.Moveable, Game.Mixins.PlayerActor,
+						Game.Mixins.SimpleAttacker, Game.Mixins.Destructable]
 }
 
 
