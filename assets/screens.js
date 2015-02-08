@@ -27,8 +27,8 @@ Game.Screen.playScreen = {
 		// var mapWidth = 500;
 		// var mapHeight = 500;
 		//extra version
-		var mapWidth = 250;
-		var mapHeight = 250;
+		var mapWidth = 100;
+		var mapHeight = 50;
 
 		for (var x = 0; x < mapWidth; x++) {
 			//created nested array for y values
@@ -117,8 +117,8 @@ Game.Screen.playScreen = {
 				Game.switchScreen(Game.Screen.winScreen);
 			} else if (inputData.keyCode === ROT.VK_ESCAPE) {
 				Game.switchScreen(Game.Screen.loseScreen);
-			}
-			//movement
+			} else {
+				//movement
 			if (inputData.keyCode === ROT.VK_LEFT) {
 				this.move(-1, 0);
 			} else if (inputData.keyCode === ROT.VK_RIGHT) {
@@ -130,6 +130,7 @@ Game.Screen.playScreen = {
 			}
 			//unlock engine on move
 			this._map.getEngine().unlock();
+			}
 		}
 	},
 	move: function( dX, dY) {

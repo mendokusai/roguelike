@@ -60,7 +60,34 @@ Game.Mixins.SimpleAttacker = {
 Game.Mixins.FungusActor = {
 	name: 'FungusActor',
 	groupName: 'Actor',
-	act: function() { }
+	init: function() {
+		this._growthsRemaining = 5;
+	},
+	act: function() {
+		//check to see if spawn child
+		if (this._growthsRemaining > 0) {
+			if (Math.random() <= 0.02) {
+				//generate coordinates of random adjuacent square
+				//generate offset [-1,0,1] for x & y
+				//generate number 0-2, subtract 1
+				var xOffset = Math.floor(Math.random() * 3) - 1;
+				var yOffset = Math.floor(Math.random() * 3) - 1;
+				//check to make sure spawn on same tile
+				if (xOffset != 0 || yOffset != 0) {
+					//check if we can actualy spawn at location
+					if (this.getMap().isEmptyFloor(this.getX() + xOffset,
+																		this.getY() + yOffset)) {
+						var entity = new Game.Entity(Game.FungusTemplate);
+					entity.setX(this.getX() + xOffset);
+					entity.setY(this.getY() + yOffset);
+					this.getMap().addEntity(entity);
+					this._growthsRemaining--;
+
+					}
+				}
+			}
+		}
+	}
 }
 
 Game.FungusTemplate = {
