@@ -21,7 +21,7 @@ var Game = {
 		};
 		bindEventToScreen('keydown');
 		// bindEventToScreen('keyup');
-		// bindEventToScreen('keypress');
+		bindEventToScreen('keypress');
 	},
 
 	getDisplay: function() {

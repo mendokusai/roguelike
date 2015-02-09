@@ -17,53 +17,25 @@ Game.Screen.startScreen = {
 		}
 	}
 }
-
 Game.Screen.playScreen = {
 	_map: null,
 	_player: null,
 
 	enter: function() {	
-		var map = [];
-		// var mapWidth = 500;
-		// var mapHeight = 500;
-		//extra version
-		var mapWidth = 100;
-		var mapHeight = 50;
 
-		for (var x = 0; x < mapWidth; x++) {
-			//created nested array for y values
-			map.push([]);
-			//add tiles
-			for (var y = 0; y < mapHeight; y ++) {
-				map[x].push(Game.Tile.nullTile);
-			}
-		}
-		//extra version
-		var generator = new ROT.Map.Uniform(mapWidth, mapHeight, {timeLimit: 5000});
-		// var generator = new ROT.Map.Cellular(mapWidth, mapHeight);
-		// generator.randomize(0.5);
-		// var totalIterations = 3;
-		// //Iteratively smothern the map
-		// for (var i = 0; i < totalIterations - 1; i++) {
-		// 	generator.create();
-		// }
-		// smoothen it one last time and then update our map
-		generator.create(function(x, y, v) {
-			if (v === 1) {
-				map[x][y] = Game.Tile.floorTile;
-			} else {
-				map[x][y] = Game.Tile.wallTile;
-			}
-		});
+		var width = 100;
+		var height = 48;
+		var depth = 6;
+
+		//greate map from tiles and player
+		var tiles = new Game.Builder(width, height, depth).getTiles();
 		//create player and set position
 		this._player = new Game.Entity(Game.PlayerTemplate);
 		//create map from tiles and player
-		this._map = new Game.Map(map, this._player);
+		this._map = new Game.Map(tiles, this._player);
 		//start map engine
 		this._map.getEngine().start();
-		// var position = this._map.getRandomFloorPosition();
-		// this._player.setX(position.x);
-		// this._player.setY(position.y);
+
 		
 	},
 	exit: function() { console.log("Exited play screen");	
@@ -81,7 +53,7 @@ Game.Screen.playScreen = {
 		for (var x = topLeftX; x < topLeftX + screenWidth; x++) {
 			for (var y = topLeftY; y < topLeftY + screenHeight; y++) {
 				//fetch glyph for tile and render to screen
-				var tile = this._map.getTile(x, y);
+				var tile = this._map.getTile(x, y, this._player.getZ());
 				display.draw(
 					x - topLeftX, 
 					y - topLeftY, 
@@ -92,14 +64,14 @@ Game.Screen.playScreen = {
 		}
 		//render entities
 		var entities = this._map.getEntities();
-		console.log(entities);
 		for (var i = 0; i < entities.length; i++) {
 			var entity = entities[i];
 
 			//only render entity if they show in screen
 			if (entity.getX() >= topLeftX && entity.getY() >= topLeftY &&
 					entity.getX() < topLeftX + screenWidth &&
-					entity.getY() < topLeftY + screenHeight) {
+					entity.getY() < topLeftY + screenHeight &&
+					entity.getZ() == this._player.getZ()) {
 					display.draw(
 						entity.getX() - topLeftX,
 						entity.getY() - topLeftY,
@@ -109,6 +81,23 @@ Game.Screen.playScreen = {
 					);
 			}
 		}
+
+		//get messages in player's queue and render
+		var messages = this._player.getMessages();
+		var messageY = 0;
+		for (var i = 0; i < messages.length; i++) {
+			//render message, adding lines
+			messageY += display.drawText(
+				0,
+				messageY,
+				'%c{white}%b{black}' + messages[i]
+				);
+		}
+
+		//render player HP
+		var stats = "%c{white}%b{black}";
+		stats += vsprintf('HP: %d/%d ', [this._player.getHp(), this._player.getMaxHp()]);
+		display.drawText(0, screenHeight, stats);
 	},
 
 	handleInput: function(inputType, inputData) {
@@ -120,25 +109,41 @@ Game.Screen.playScreen = {
 			} else {
 				//movement
 			if (inputData.keyCode === ROT.VK_LEFT) {
-				this.move(-1, 0);
+				this.move(-1, 0, 0);
 			} else if (inputData.keyCode === ROT.VK_RIGHT) {
-				this.move(1, 0);
+				this.move(1, 0, 0);
 			} else if (inputData.keyCode === ROT.VK_UP) {
-				this.move(0, -1);
+				this.move(0, -1, 0);
 			} else if (inputData.keyCode === ROT.VK_DOWN) {
-				this.move(0, 1);
+				this.move(0, 1, 0);
+			} else {
+				//not a valid key
+				return;
 			}
 			//unlock engine on move
 			this._map.getEngine().unlock();
 			}
+		} else if (inputType === 'keypress') {
+			var keyChar = String.fromCharCode(inputData.charCode);
+			if (keyChar === ">") {
+				this.move(0,0,1);
+			} else if (keyChar === '<') {
+				this.move(0,0,-1);
+			} else {
+				//not a valid key
+				return;
+			}
+			//unlock engine on move
+			this._map.getEngine().unlock();			
 		}
 	},
-	move: function( dX, dY) {
+	move: function(dX, dY, dZ) {
 		var newX = this._player.getX() + dX;
 		var newY = this._player.getY() + dY;
+		var newZ = this._player.getZ() + dZ;
 		//try to move to new cell
 
-		this._player.tryMove(newX, newY, this._map);
+		this._player.tryMove(newX, newY, newZ, this._map);
 	}
 }
 
