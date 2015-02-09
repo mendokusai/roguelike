@@ -5,6 +5,10 @@ Game.Map = function(tiles, player) {
 	this._depth = tiles.length
 	this._width = tiles[0].length;
 	this._height = tiles[0][0].length;
+
+	//setup filed of vision
+	this._fov = [];
+	this.setupFov();
 	
 	//a list to hold entities
 	this._entities = [];
@@ -25,6 +29,29 @@ Game.Map = function(tiles, player) {
 };
 
 //getters
+
+Game.Map.prototype.setupFov = function() {
+	//keep this in 'map' 
+	var map = this;
+	//iterate through each depth, set up FOV
+	for (var z = 0; z < this._depth; z++) {
+		console.log(this._depth);
+		//we have to precent depth from being hoisted out of the loop
+		console.log('hi: ', z);
+		(function() {
+			//each depth, create callback to sort out light-passing per tile
+			var depth = z;
+			map._fov.push(
+				new ROT.FOV.DiscreteShadowcasting(function(x, y) {
+					return !map.getTile(x, y, depth).isBlockingLight();
+				}, {topology: 4}));
+		})();
+	}
+}
+
+Game.Map.prototype.getFov = function(depth) {
+	return this._fov[depth];
+}
 
 Game.Map.prototype.getDepth = function() {
 	return this._depth;
@@ -49,6 +76,8 @@ Game.Map.prototype.getTile = function(x, y, z) {
 		return this._tiles[z][x][y] || Game.Tile.nullTile;
 	}
 };
+
+
 
 Game.Map.prototype.getEngine = function() {
 	return this._engine;

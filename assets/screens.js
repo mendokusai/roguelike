@@ -47,19 +47,32 @@ Game.Screen.playScreen = {
 		//x-axis doesn't go beyond left bound
 		var topLeftX = Math.max(0, this._player.getX() - (screenWidth / 2));
 		topLeftX = Math.min(topLeftX, this._map.getWidth() - screenWidth);
+		//y-axis doesn't go beyong top boundary
 		var topLeftY = Math.max(0, this._player.getY() - (screenHeight / 2));
 		topLeftY = Math.min(topLeftY, this._map.getHeight() - screenHeight);
+		
+		var visibleCells = {};
+		//find visible cells and update object
+		this._map.getFov(this._player.getZ()).compute(
+			this._player.getX(), this._player.getY(),
+			this._player.getSightRadius(),
+			function(x, y, radius, visibility) {
+				visibleCells[x + "," + y] = true;
+			});
 		//iterate through visible map cells
 		for (var x = topLeftX; x < topLeftX + screenWidth; x++) {
 			for (var y = topLeftY; y < topLeftY + screenHeight; y++) {
-				//fetch glyph for tile and render to screen
-				var tile = this._map.getTile(x, y, this._player.getZ());
-				display.draw(
-					x - topLeftX, 
-					y - topLeftY, 
-					tile.getChar(),
-					tile.getForeground(),
-					tile.getBackground())
+				if (visibleCells[x + "," + y]) {
+					//fetch glyph for tile and render to screen
+					var tile = this._map.getTile(x, y, this._player.getZ());
+					display.draw(
+						x - topLeftX, 
+						y - topLeftY, 
+						tile.getChar(),
+						tile.getForeground(),
+						tile.getBackground()
+						);
+				}
 			}
 		}
 		//render entities
@@ -72,13 +85,15 @@ Game.Screen.playScreen = {
 					entity.getX() < topLeftX + screenWidth &&
 					entity.getY() < topLeftY + screenHeight &&
 					entity.getZ() == this._player.getZ()) {
-					display.draw(
+					if (visibleCells[entity.getX() + ',' + entity.getY()]) {
+						display.draw(
 						entity.getX() - topLeftX,
 						entity.getY() - topLeftY,
 						entity.getChar(),
 						entity.getForeground(),
 						entity.getBackground()
 					);
+				}
 			}
 		}
 
