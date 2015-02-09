@@ -9,6 +9,10 @@ Game.Map = function(tiles, player) {
 	//setup filed of vision
 	this._fov = [];
 	this.setupFov();
+
+	//explored array
+	this._explored = new Array(this._depth);
+	this._setupExploredArray();
 	
 	//a list to hold entities
 	this._entities = [];
@@ -29,6 +33,34 @@ Game.Map = function(tiles, player) {
 };
 
 //getters
+
+Game.Map.prototype._setupExploredArray = function() {
+	for (var z = 0; z < this._depth; z++) {
+		this._explored[z] = new Array(this._width);
+		for (var x = 0; x < this._width; x++) {
+			this._explored[z][x] = new Array(this._height);
+			for (var y = 0; y < this._height; y++) {
+				this._explored[z][x][y] = false;
+			}
+		}
+	}
+};
+
+Game.Map.prototype.setExplored = function(x, y, z, state) {
+	//update if tile is within bounds
+	if (this.getTile(x, y, z) !== Game.Tile.nullTile) {
+		this._explored[z][x][y] = state;
+	}
+};
+
+Game.Map.prototype.isExplored = function(x, y, z) {
+	//return value within bounds
+	if (this.getTile(x,y,z) !== Game.Tile.nullTile) {
+		return this._explored[z][x][y];
+	} else {
+		return false;
+	}
+};
 
 Game.Map.prototype.setupFov = function() {
 	//keep this in 'map' 

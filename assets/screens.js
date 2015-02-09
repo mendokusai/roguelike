@@ -52,29 +52,39 @@ Game.Screen.playScreen = {
 		topLeftY = Math.min(topLeftY, this._map.getHeight() - screenHeight);
 		
 		var visibleCells = {};
+		//store this._map and player z to remember it.
+		var map = this._map;
+		var currentDepth = this._player.getZ();
 		//find visible cells and update object
-		this._map.getFov(this._player.getZ()).compute(
+		map.getFov(currentDepth).compute(
 			this._player.getX(), this._player.getY(),
 			this._player.getSightRadius(),
 			function(x, y, radius, visibility) {
 				visibleCells[x + "," + y] = true;
+				//mark cell as explored
+				map.setExplored(x, y, currentDepth, true);
 			});
-		//iterate through visible map cells
+
+		//render explored map cells
 		for (var x = topLeftX; x < topLeftX + screenWidth; x++) {
 			for (var y = topLeftY; y < topLeftY + screenHeight; y++) {
-				if (visibleCells[x + "," + y]) {
-					//fetch glyph for tile and render to screen
-					var tile = this._map.getTile(x, y, this._player.getZ());
-					display.draw(
-						x - topLeftX, 
-						y - topLeftY, 
-						tile.getChar(),
-						tile.getForeground(),
-						tile.getBackground()
-						);
+				if (map.isExplored(x, y, currentDepth)) {
+					//fetch glyph for tile and render it
+					var tile  = this._map.getTile(x, y, currentDepth);
+					//color is dark gray is explored, but not visible
+					var foreground = visibleCells[x + ',' + y] ?
+						tile.getForeground() : 'darkGray';
+						display.draw(
+							x - topLeftX,
+							y - topLeftY,
+							tile.getChar(),
+							foreground,
+							tile.getBackground()
+							);
 				}
 			}
 		}
+
 		//render entities
 		var entities = this._map.getEntities();
 		for (var i = 0; i < entities.length; i++) {
@@ -113,6 +123,7 @@ Game.Screen.playScreen = {
 		var stats = "%c{white}%b{black}";
 		stats += vsprintf('HP: %d/%d ', [this._player.getHp(), this._player.getMaxHp()]);
 		display.drawText(0, screenHeight, stats);
+
 	},
 
 	handleInput: function(inputType, inputData) {
