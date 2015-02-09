@@ -73,7 +73,7 @@ Game.Screen.playScreen = {
 					var tile  = this._map.getTile(x, y, currentDepth);
 					//color is dark gray is explored, but not visible
 					var foreground = visibleCells[x + ',' + y] ?
-						tile.getForeground() : 'darkGray';
+						tile.getForeground() : 'darkgray';
 						display.draw(
 							x - topLeftX,
 							y - topLeftY,
@@ -87,9 +87,8 @@ Game.Screen.playScreen = {
 
 		//render entities
 		var entities = this._map.getEntities();
-		for (var i = 0; i < entities.length; i++) {
-			var entity = entities[i];
-
+		for (var key in entities) {
+			var entity = entities[key];
 			//only render entity if they show in screen
 			if (entity.getX() >= topLeftX && entity.getY() >= topLeftY &&
 					entity.getX() < topLeftX + screenWidth &&

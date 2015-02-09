@@ -225,11 +225,52 @@ Game.PlayerTemplate = {
 	hp: 40,
 	maxHp: 40,
 	attackValue: 10,
-	sightRadius: 6,
-	mixins: [Game.Mixins.Moveable, Game.Mixins.PlayerActor,
+	sightRadius: 5,
+	mixins: [Game.Mixins.PlayerActor,
 						Game.Mixins.Attacker, Game.Mixins.Destructable,
 						Game.Mixins.Sight, Game.Mixins.MessageRecipient]
 }
+
+Game.Mixins.WanderActor = {
+	name: 'WanderActor',
+	groupName: 'Actor',
+	act: function() {
+		// flip coint o determine if moving by 1
+		var moveOffset = (Math.round(Math.random()) === 1) ? 1: -1;
+		// 50/50 towards x or y
+		if (Math.round(Math.random()) === 1) {
+			this.tryMove(this.getX() + moveOffset, this.getY(), this.getZ());
+		} else {
+			this.tryMove(this.getX(), this.getY() + moveOffset, this.getZ());
+		}
+	}
+};
+
+Game.BatTemplate = {
+	name: 'bat',
+	character: 'B',
+	foreground: 'brown',
+	maxHp: 5,
+	attackValue: 4,
+	mixins: [
+			Game.Mixins.WanderActor,
+			Game.Mixins.Attacker, 
+			Game.Mixins.Destructable
+			]
+};
+
+Game.NewtTemplate = {
+	name: 'newt',
+	character: '%',
+	foreground: 'blue',
+	maxHp: 3,
+	attackValue: 2,
+	mixins: [
+			Game.Mixins.WanderActor,
+			Game.Mixins.Attacker,
+			Game.Mixins.Destructable
+			]
+};
 
 
 
